@@ -117,14 +117,12 @@ jobs:
 
       - name: Run Terratest
         id: terratest
-        working-directory: ${{ env.TERRAFORM_DIR }}
+        working-directory: "${{ env.TERRAFORM_DIR }}/test"
         continue-on-error: true
         env:
           GOOGLE_PROJECT: "${{ env.TERRATEST_GOOGLE_PROJECT }}"
           WORKLOAD_IDENTITY_REPOSITORY: ${{ github.repository }}
         run: |
-          cd test
-          
           OUTPUT=$(go test -tags gcp -v -timeout 30m ./...)
 
           echo "$OUTPUT"
