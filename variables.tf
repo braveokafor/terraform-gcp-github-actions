@@ -9,6 +9,9 @@ variable "enabled_apis" {
   type        = list(string)
   default = [
     "compute.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
   ]
 }
 
