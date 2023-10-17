@@ -2,9 +2,9 @@
 
 [![Build Status][badge_build_status]][link_build_status]
 [![Release Status][badge_release_status]][link_build_status]
-[![Version][badge_release_version]][link_release_version]
 [![Issues][badge_issues]][link_issues]
 [![Issues][badge_pulls]][link_pulls]
+[![Version][badge_release_version]][link_release_version]
 
 Terraform module to set up [Workload Identity](https://cloud.google.com/blog/products/identity-security/secure-your-use-of-third-party-tools-with-identity-federation) in Google Cloud to securely connect GitHub Actions with Google Cloud services.  
 Includes configurations for APIs, service accounts, identity pools and providers, and management of [terraform state buckets](https://developer.hashicorp.com/terraform/language/settings/backends/gcs).
@@ -57,7 +57,7 @@ This will be disabled if `var.create_terraform_bucket = false` and `var.existing
 
 ```hcl
 module "github_actions_workload_identity" {
-  source = "git::https://github.com/braveokafor/terraform-gcp-github-actions.git//.?ref=main"
+  source = "git::https://github.com/braveokafor/terraform-gcp-github-actions.git//.?ref=v0.2.0"
 
   project_id                     = "YOUR_GCP_PROJECT_ID"
   enabled_apis                   = ["compute.googleapis.com", "iam.googleapis.com"]
@@ -141,6 +141,6 @@ See [the official document](https://developer.hashicorp.com/terraform/language/s
 
 [badge_issues]:https://img.shields.io/github/issues-raw/braveokafor/terraform-gcp-github-actions?style=flat-square&logo=GitHub
 [badge_pulls]:https://img.shields.io/github/issues-pr/braveokafor/terraform-gcp-github-actions?style=flat-square&logo=GitHub
-[badge_build_status]:https://img.shields.io/github/actions/workflow/status/braveokafor/terraform-gcp-github-actions/go-ci.yaml?style=flat-square&logo=GitHub&label=build
-[badge_release_status]:https://img.shields.io/github/actions/workflow/status/braveokafor/terraform-gcp-github-actions/go-release.yaml?style=flat-square&logo=GitHub&label=release
-[badge_release_version]:https://img.shields.io/github/v/release/braveokafor/terraform-gcp-github-actions
+[badge_build_status]:https://img.shields.io/github/actions/workflow/status/braveokafor/terraform-gcp-github-actions/terraform-ci.yaml?style=flat-square&logo=GitHub&label=build
+[badge_release_status]:https://img.shields.io/github/actions/workflow/status/braveokafor/terraform-gcp-github-actions/terraform-release.yaml?style=flat-square&logo=GitHub&label=release
+[badge_release_version]:https://img.shields.io/github/v/release/braveokafor/terraform-gcp-github-actions?style=flat-square&logo=GitHub&label=version
