@@ -15,12 +15,30 @@ env:
   GO_VERSION: 1.21
   TERRAFORM_VERSION: 1.4.6
   TERRAFORM_DIR: .
-  TERRATEST_PATH: test
   TERRATEST_GOOGLE_PROJECT: ${{ secrets.TERRATEST_GOOGLE_PROJECT }}
   GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
   GOOGLE_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
 
 jobs:
+  pre-commit-checks:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Terraform min/max versions
+        id: minMax
+        uses: clowdhaus/terraform-min-max@v1.2.7
+
+      - name: Pre-commit Terraform ${{ steps.minMax.outputs.maxVersion }}
+        uses: clowdhaus/terraform-composite-actions/pre-commit@v1.8.3
+        with:
+          terraform-version: ${{ steps.minMax.outputs.maxVersion }}
+          terraform-docs-version: v0.16.0
+
   lint:
     runs-on: ubuntu-latest
     permissions:
@@ -32,7 +50,6 @@ jobs:
       validateOutcome: ${{ steps.validate.outcome }}
       validateOutput: ${{ steps.validate.outputs.output }}
       checkovOutcome: ${{ steps.checkov.outcome }}
-      superlinterOutcome: ${{ steps.super-linter.outcome }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -72,19 +89,6 @@ jobs:
         with:
           quiet: true
 
-      - name: Run Super-Linter
-        id: super-linter
-        uses: super-linter/super-linter@v5
-        continue-on-error: true
-        env:
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_ALL_CODEBASE: false
-          VALIDATE_GO: true
-          VALIDATE_TERRAFORM_FMT: true
-          VALIDATE_TERRAFORM_TERRASCAN: true
-          VALIDATE_TERRAFORM_TFLINT: true
-
   test:
     runs-on: ubuntu-latest
     outputs:
@@ -116,9 +120,15 @@ jobs:
           workload_identity_provider: ${{ env.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
           access_token_lifetime: 300s
 
+      - name: Terraform Init
+        id: init
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        continue-on-error: true
+        run: terraform init
+
       - name: Run Terratest
         id: terratest
-        working-directory: ${{ env.TERRATEST_PATH }}
+        working-directory: "${{ env.TERRAFORM_DIR }}/test"
         continue-on-error: true
         env:
           GOOGLE_PROJECT: "${{ env.TERRATEST_GOOGLE_PROJECT }}"
@@ -128,7 +138,10 @@ jobs:
 
           echo "$OUTPUT"
 
+          OUTPUT=$(echo "$OUTPUT" | sed -r "s/\x1B\[[0-?]*[ -/]*[@-~]//g") # remove ansi escape sequences.
+          OUTPUT="$(echo -n "$OUTPUT" | tail -n 5)"
           OUTPUT=$(echo "$OUTPUT" | jq -R -s -c .)
+
           echo "output=$OUTPUT" >> $GITHUB_OUTPUT
 
   comment-on-pr:
@@ -143,22 +156,22 @@ jobs:
       - name: PR Comment
         uses: actions/github-script@v6
         env:
-          testOutput: "${{ needs.test.outputs.testOutput }}"
           validateOutput: "${{ needs.lint.outputs.validateOutput }}"
+          testOutput: "${{ needs.test.outputs.testOutput }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fmtOutcome = "${{ needs.lint.outputs.fmtOutcome }}";
             const validateOutcome = "${{ needs.lint.outputs.validateOutcome }}";
             const checkovOutcome = "${{ needs.lint.outputs.checkovOutcome }}";
-            const superlinterOutcome = "${{ needs.lint.outputs.superlinterOutcome }}";
             const testOutcome = "${{ needs.test.outputs.testOutcome }}";
+            const planOutcome = "${{ needs.test.outputs.planOutcome }}";
 
             let testOutput;
             try {
               testOutput = JSON.parse(process.env.testOutput);
             } catch (e) {
-              testOutput = '';
+              testOutput = 'JSON parse failed';
             }
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -170,7 +183,6 @@ jobs:
             const botComment = comments.find(comment => comment.user.type === 'Bot' && comment.body.includes('Go Lint Results'));
 
             const output = `#### Checkov Results 🛡️: \`${checkovOutcome}\`
-            \n#### Super-linter Results 🖌️: \`${superlinterOutcome}\`
 
             \n#### Terraform Fmt Check Results 🧹: \`${fmtOutcome}\`
             \n#### Terraform Validate Results 🤖 : \`${validateOutcome}\`
@@ -184,7 +196,7 @@ jobs:
 
 
             \n#### Terratest Results 🧪: \`${testOutcome}\`
-            <details><summary>Terratest Logs</summary>
+            <details><summary>Show Terratest Logs</summary>
 
             \`\`\`\n
             ${testOutput}
