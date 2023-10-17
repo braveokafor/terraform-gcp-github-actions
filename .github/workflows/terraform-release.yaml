@@ -3,10 +3,19 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  id-token: write
+
 name: release-please
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+      pull-requests: write
+      id-token: write
     steps:
       - uses: google-github-actions/release-please-action@v3
         with:

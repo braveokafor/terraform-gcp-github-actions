@@ -15,7 +15,6 @@ env:
   GO_VERSION: 1.21
   TERRAFORM_VERSION: 1.4.6
   TERRAFORM_DIR: .
-  TERRATEST_PATH: test
   TERRATEST_GOOGLE_PROJECT: ${{ secrets.TERRATEST_GOOGLE_PROJECT }}
   GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
   GOOGLE_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
@@ -118,12 +117,14 @@ jobs:
 
       - name: Run Terratest
         id: terratest
-        working-directory: ${{ env.TERRATEST_PATH }}
+        working-directory: ${{ env.TERRAFORM_DIR }}
         continue-on-error: true
         env:
           GOOGLE_PROJECT: "${{ env.TERRATEST_GOOGLE_PROJECT }}"
           WORKLOAD_IDENTITY_REPOSITORY: ${{ github.repository }}
         run: |
+          cd test
+          
           OUTPUT=$(go test -tags gcp -v -timeout 30m ./...)
 
           echo "$OUTPUT"

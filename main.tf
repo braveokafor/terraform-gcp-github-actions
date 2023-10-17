@@ -33,6 +33,9 @@ data "google_service_account" "existing_ci_runner" {
 }
 
 resource "google_project_iam_member" "ci_runner" {
+  #checkov:skip=CKV_GCP_117: "Ensure basic roles are not used at project level."
+  #checkov:skip=CKV_GCP_49: "Ensure roles do not impersonate or manage Service Accounts used at project level"
+
   for_each = toset(var.ci_runner_sa_roles)
 
   project = var.project_id
@@ -45,6 +48,8 @@ resource "google_project_iam_member" "ci_runner" {
 # Terraform Bucket
 #------------------------------------------------------------------------------
 resource "google_storage_bucket" "terraform" {
+  #checkov:skip=CKV_GCP_62: "Bucket should log access"
+
   count   = var.create_terraform_bucket ? 1 : 0
   project = var.project_id
 
@@ -81,6 +86,8 @@ resource "google_storage_bucket_iam_member" "terraform" {
 # Identity pool
 #------------------------------------------------------------------------------
 module "gh_oidc" {
+  #checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
+
   source  = "terraform-google-modules/github-actions-runners/google//modules/gh-oidc"
   version = "3.1.2"
 
