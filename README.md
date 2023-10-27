@@ -60,7 +60,7 @@ module "github_actions_workload_identity" {
   source = "git::https://github.com/braveokafor/terraform-gcp-github-actions.git//.?ref=v0.1.0"
 
   project_id                     = "YOUR_GCP_PROJECT_ID"
-  enabled_apis                   = ["compute.googleapis.com", "iam.googleapis.com"]
+  enabled_apis                   = ["compute.googleapis.com", "iam.googleapis.com", "cloudresourcemanager.googleapis.com"]
   create_ci_runner_sa            = true
   ci_runner_sa_roles             = ["roles/owner"]
   create_terraform_bucket        = true
