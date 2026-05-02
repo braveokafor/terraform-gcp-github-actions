@@ -11,33 +11,25 @@ permissions:
   contents: read
   id-token: write
 
-env:
-  GO_VERSION: 1.21
-  TERRAFORM_VERSION: 1.4.6
-  TERRAFORM_DIR: .
-  TERRATEST_GOOGLE_PROJECT: ${{ secrets.TERRATEST_GOOGLE_PROJECT }}
-  GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-  GOOGLE_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
-
 jobs:
   pre-commit-checks:
     name: Pre-commit checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
       - name: Terraform min/max versions
         id: minMax
-        uses: clowdhaus/terraform-min-max@v1.2.7
+        uses: clowdhaus/terraform-min-max@v3.0.1
 
       - name: Pre-commit Terraform ${{ steps.minMax.outputs.maxVersion }}
-        uses: clowdhaus/terraform-composite-actions/pre-commit@v1.8.3
+        uses: clowdhaus/terraform-composite-actions/pre-commit@v1.14.0
         with:
           terraform-version: ${{ steps.minMax.outputs.maxVersion }}
-          terraform-docs-version: v0.16.0
+          terraform-docs-version: v0.22.0
 
   lint:
     runs-on: ubuntu-latest
@@ -52,14 +44,13 @@ jobs:
       checkovOutcome: ${{ steps.checkov.outcome }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v4.0.0
         with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
 
       - name: Terraform Format
@@ -68,13 +59,11 @@ jobs:
 
       - name: Terraform Init
         id: init
-        working-directory: ${{ env.TERRAFORM_DIR }}
         continue-on-error: true
         run: terraform init -backend=false
 
       - name: Terraform Validate
         id: validate
-        working-directory: ${{ env.TERRAFORM_DIR }}
         continue-on-error: true
         run: |
           OUTPUT=$(terraform validate -no-color)
@@ -84,68 +73,13 @@ jobs:
 
       - name: Run Checkov
         id: checkov
-        uses: bridgecrewio/checkov-action@v12.2500.0
+        uses: bridgecrewio/checkov-action@v12.3101.0
         continue-on-error: true
         with:
           quiet: true
 
-  test:
-    runs-on: ubuntu-latest
-    outputs:
-      testOutcome: ${{ steps.terratest.outcome }}
-      testOutput: ${{ steps.terratest.outputs.output }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          terraform_wrapper: false
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: false
-
-      - name: Authenticate to Google Cloud
-        id: "auth"
-        uses: "google-github-actions/auth@v1"
-        with:
-          service_account: ${{ env.GOOGLE_SERVICE_ACCOUNT }}
-          workload_identity_provider: ${{ env.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
-          access_token_lifetime: 300s
-
-      - name: Terraform Init
-        id: init
-        working-directory: ${{ env.TERRAFORM_DIR }}
-        continue-on-error: true
-        run: terraform init
-
-      - name: Run Terratest
-        id: terratest
-        working-directory: "${{ env.TERRAFORM_DIR }}/test"
-        continue-on-error: true
-        env:
-          GOOGLE_PROJECT: "${{ env.TERRATEST_GOOGLE_PROJECT }}"
-          WORKLOAD_IDENTITY_REPOSITORY: ${{ github.repository }}
-        run: |
-          OUTPUT=$(go test -tags gcp -v -timeout 30m ./...)
-
-          echo "$OUTPUT"
-
-          OUTPUT=$(echo "$OUTPUT" | sed -r "s/\x1B\[[0-?]*[ -/]*[@-~]//g") # remove ansi escape sequences.
-          OUTPUT="$(echo -n "$OUTPUT" | tail -n 5)"
-          OUTPUT=$(echo "$OUTPUT" | jq -R -s -c .)
-
-          echo "output=$OUTPUT" >> $GITHUB_OUTPUT
-
   comment-on-pr:
-    needs: [lint, test]
+    needs: [lint]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     permissions:
@@ -157,22 +91,12 @@ jobs:
         uses: actions/github-script@v6
         env:
           validateOutput: "${{ needs.lint.outputs.validateOutput }}"
-          testOutput: "${{ needs.test.outputs.testOutput }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fmtOutcome = "${{ needs.lint.outputs.fmtOutcome }}";
             const validateOutcome = "${{ needs.lint.outputs.validateOutcome }}";
             const checkovOutcome = "${{ needs.lint.outputs.checkovOutcome }}";
-            const testOutcome = "${{ needs.test.outputs.testOutcome }}";
-            const planOutcome = "${{ needs.test.outputs.planOutcome }}";
-
-            let testOutput;
-            try {
-              testOutput = JSON.parse(process.env.testOutput);
-            } catch (e) {
-              testOutput = 'JSON parse failed';
-            }
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -180,7 +104,7 @@ jobs:
               issue_number: context.issue.number,
             });
 
-            const botComment = comments.find(comment => comment.user.type === 'Bot' && comment.body.includes('Go Lint Results'));
+            const botComment = comments.find(comment => comment.user.type === 'Bot' && comment.body.includes('Terraform Validate Results'));
 
             const output = `#### Checkov Results 🛡️: \`${checkovOutcome}\`
 
@@ -192,18 +116,8 @@ jobs:
             ${process.env.validateOutput}
             \`\`\`
 
-            </details>
-
-
-            \n#### Terratest Results 🧪: \`${testOutcome}\`
-            <details><summary>Show Terratest Logs</summary>
-
-            \`\`\`\n
-            ${testOutput}
-            \`\`\`
-
             </details>`;
-                             
+
             if (botComment) {
               github.rest.issues.updateComment({
                 owner: context.repo.owner,

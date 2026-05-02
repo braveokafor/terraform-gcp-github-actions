@@ -18,11 +18,13 @@ variable "enabled_apis" {
 # CI Runner (IAM)
 #------------------------------------------------------------------------------
 variable "create_ci_runner_sa" {
+  type        = bool
   description = "Boolean to decide if a service account should be created"
   default     = true
 }
 
 variable "existing_ci_runner_sa_email" {
+  type        = string
   description = "Email of the existing service account to be used"
   default     = null
 }
@@ -44,11 +46,13 @@ variable "ci_runner_sa_roles" {
 # Terraform bucket (GCS)
 #------------------------------------------------------------------------------
 variable "create_terraform_bucket" {
+  type        = bool
   description = "Boolean to decide if a bucket should be created"
   default     = true
 }
 
 variable "existing_terraform_bucket_name" {
+  type        = string
   description = "Name of the existing bucket to be used"
   default     = null
 }

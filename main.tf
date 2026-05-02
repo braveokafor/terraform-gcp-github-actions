@@ -89,7 +89,7 @@ module "gh_oidc" {
   #checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
 
   source  = "terraform-google-modules/github-actions-runners/google//modules/gh-oidc"
-  version = "3.1.2"
+  version = "5.1.0"
 
   project_id = var.project_id
 
