@@ -17,19 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
       - name: Terraform min/max versions
         id: minMax
-        uses: clowdhaus/terraform-min-max@v1.2.7
+        uses: clowdhaus/terraform-min-max@v3.0.1
 
       - name: Pre-commit Terraform ${{ steps.minMax.outputs.maxVersion }}
-        uses: clowdhaus/terraform-composite-actions/pre-commit@v1.8.3
+        uses: clowdhaus/terraform-composite-actions/pre-commit@v1.14.0
         with:
           terraform-version: ${{ steps.minMax.outputs.maxVersion }}
-          terraform-docs-version: v0.16.0
+          terraform-docs-version: v0.22.0
 
   lint:
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
       checkovOutcome: ${{ steps.checkov.outcome }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
@@ -104,7 +104,7 @@ jobs:
               issue_number: context.issue.number,
             });
 
-            const botComment = comments.find(comment => comment.user.type === 'Bot' && comment.body.includes('Go Lint Results'));
+            const botComment = comments.find(comment => comment.user.type === 'Bot' && comment.body.includes('Terraform Validate Results'));
 
             const output = `#### Checkov Results 🛡️: \`${checkovOutcome}\`
 
@@ -116,7 +116,7 @@ jobs:
             ${process.env.validateOutput}
             \`\`\`
 
-            </details>
+            </details>`;
 
             if (botComment) {
               github.rest.issues.updateComment({
