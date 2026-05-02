@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.0](https://github.com/braveokafor/terraform-gcp-github-actions/compare/v0.1.0...v0.2.0) (2026-05-02)
+
+
+### Features
+
+* bump dependency versions ([66c5fe1](https://github.com/braveokafor/terraform-gcp-github-actions/commit/66c5fe16faa1d7a20322eab118356c881a43d914))
+* bump dependency versions ([1f53b01](https://github.com/braveokafor/terraform-gcp-github-actions/commit/1f53b01305c48fc05f573c03282698e1fcf299e6))
+* bump dependency versions ([ccd9ef5](https://github.com/braveokafor/terraform-gcp-github-actions/commit/ccd9ef5de2ed429b0e89e21312e437e19ded9d90))
+
 ## 0.1.0 (2023-10-17)
 
 
