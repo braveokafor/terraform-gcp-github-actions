@@ -89,28 +89,28 @@ See [the official document](https://developer.hashicorp.com/terraform/language/s
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13 |
-| <a name="requirement_google"></a> [google](#requirement\_google) | ~> 4.0 |
+| <a name="requirement_google"></a> [google](#requirement\_google) | ~> 7.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_google"></a> [google](#provider\_google) | ~> 4.0 |
+| ---- | ------- |
+| <a name="provider_google"></a> [google](#provider\_google) | ~> 7.0 |
 
 ## Inputs
 
 | Name | Description | Type | Required |
-|------|-------------|------|:--------:|
+| ---- | ----------- | ---- | :------: |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The ID of the project | `string` | yes |
 | <a name="input_ci_runner_sa_name"></a> [ci\_runner\_sa\_name](#input\_ci\_runner\_sa\_name) | IAM roles name | `string` | no |
 | <a name="input_ci_runner_sa_roles"></a> [ci\_runner\_sa\_roles](#input\_ci\_runner\_sa\_roles) | IAM roles to assign to the `ci-runner` service account | `list(string)` | no |
 | <a name="input_create_ci_runner_sa"></a> [create\_ci\_runner\_sa](#input\_create\_ci\_runner\_sa) | Boolean to decide if a service account should be created | `bool` | no |
 | <a name="input_create_terraform_bucket"></a> [create\_terraform\_bucket](#input\_create\_terraform\_bucket) | Boolean to decide if a bucket should be created | `bool` | no |
 | <a name="input_enabled_apis"></a> [enabled\_apis](#input\_enabled\_apis) | Google Cloud API's to enable on the project. | `list(string)` | no |
-| <a name="input_existing_ci_runner_sa_email"></a> [existing\_ci\_runner\_sa\_email](#input\_existing\_ci\_runner\_sa\_email) | Email of the existing service account to be used | `any` | no |
-| <a name="input_existing_terraform_bucket_name"></a> [existing\_terraform\_bucket\_name](#input\_existing\_terraform\_bucket\_name) | Name of the existing bucket to be used | `any` | no |
+| <a name="input_existing_ci_runner_sa_email"></a> [existing\_ci\_runner\_sa\_email](#input\_existing\_ci\_runner\_sa\_email) | Email of the existing service account to be used | `string` | no |
+| <a name="input_existing_terraform_bucket_name"></a> [existing\_terraform\_bucket\_name](#input\_existing\_terraform\_bucket\_name) | Name of the existing bucket to be used | `string` | no |
 | <a name="input_terraform_bucket_location"></a> [terraform\_bucket\_location](#input\_terraform\_bucket\_location) | Global region to create the bucket, e.g. EU | `string` | no |
 | <a name="input_terraform_bucket_name"></a> [terraform\_bucket\_name](#input\_terraform\_bucket\_name) | Globally unique name for the state bucket, defaults to (project-id)-terraform | `string` | no |
 | <a name="input_terraform_prevent_bucket_destroy"></a> [terraform\_prevent\_bucket\_destroy](#input\_terraform\_prevent\_bucket\_destroy) | Bucket `force_destroy` value | `bool` | no |
@@ -125,7 +125,7 @@ See [the official document](https://developer.hashicorp.com/terraform/language/s
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_ci_runner_sa_email"></a> [ci\_runner\_sa\_email](#output\_ci\_runner\_sa\_email) | CI runner service account email |
 | <a name="output_generated_backend_file"></a> [generated\_backend\_file](#output\_generated\_backend\_file) | Generated `backend.tf` |
 | <a name="output_terraform_bucket_name"></a> [terraform\_bucket\_name](#output\_terraform\_bucket\_name) | Terraform bucket name |
